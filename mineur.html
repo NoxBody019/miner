@@ -1,0 +1,1439 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NoxWallet - Crypto Wallet & Mining</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --secondary: #8b5cf6;
+            --accent: #ec4899;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg-dark: #0f0f23;
+            --bg-card: #1a1a2e;
+            --bg-elevated: #252540;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0c0;
+            --border: #2d2d48;
+            --glow: rgba(99, 102, 241, 0.4);
+        }
+
+        [data-theme="light"] {
+            --bg-dark: #f8f9fa;
+            --bg-card: #ffffff;
+            --bg-elevated: #f1f3f5;
+            --text-primary: #1a1a2e;
+            --text-secondary: #6c757d;
+            --border: #dee2e6;
+            --glow: rgba(99, 102, 241, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .bg-gradient {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 50%, rgba(99, 102, 241, 0.15), transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.15), transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        .header {
+            position: sticky;
+            top: 0;
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 24px;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo::before {
+            content: '◆';
+            font-size: 28px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: pulse 2s infinite;
+        }
+
+        .header-balance {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .balance-display {
+            text-align: right;
+        }
+
+        .balance-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .balance-amount {
+            font-size: 24px;
+            font-weight: 700;
+            font-family: 'Orbitron', sans-serif;
+            background: linear-gradient(135deg, var(--success), var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .theme-toggle {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: 50px;
+            padding: 8px 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+
+        .theme-toggle:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px var(--glow);
+        }
+
+        /* Auth Screen */
+        .auth-screen {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .auth-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 50px;
+            max-width: 450px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .auth-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 32px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .auth-subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 14px 18px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--glow);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px var(--glow);
+        }
+
+        .btn-primary:active {
+            transform: scale(0.98);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            margin-top: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-elevated);
+        }
+
+        /* Dashboard */
+        .dashboard {
+            padding-top: 30px;
+        }
+
+        .welcome-banner {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .welcome-banner::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1), transparent 70%);
+            animation: rotate 20s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .welcome-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .welcome-text {
+            font-size: 16px;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            background: var(--bg-card);
+            padding: 10px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            overflow-x: auto;
+        }
+
+        .nav-tab {
+            padding: 12px 24px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .nav-tab.active {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            box-shadow: 0 4px 15px var(--glow);
+        }
+
+        .nav-tab:hover:not(.active) {
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 25px;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px var(--glow);
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-icon {
+            font-size: 24px;
+        }
+
+        .crypto-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .crypto-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: var(--bg-elevated);
+            border-radius: 12px;
+            transition: all 0.3s;
+        }
+
+        .crypto-item:hover {
+            background: var(--bg-card);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .crypto-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .crypto-symbol {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .btc { background: linear-gradient(135deg, #f7931a, #f2a900); }
+        .eth { background: linear-gradient(135deg, #627eea, #8c9eff); }
+        .usdt { background: linear-gradient(135deg, #26a17b, #50af95); }
+
+        .crypto-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .crypto-name {
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .crypto-symbol-text {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .crypto-balance {
+            text-align: right;
+        }
+
+        .crypto-amount {
+            font-weight: 700;
+            font-size: 16px;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .crypto-value {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Mining Section */
+        .mining-console {
+            background: #000;
+            border-radius: 12px;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            color: #00ff00;
+            margin: 20px 0;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid var(--success);
+        }
+
+        .console-line {
+            margin: 5px 0;
+            animation: typeLine 0.3s ease-out;
+        }
+
+        @keyframes typeLine {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .mining-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-box {
+            background: var(--bg-elevated);
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            font-family: 'Orbitron', sans-serif;
+            color: var(--success);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--bg-elevated);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success), var(--primary));
+            border-radius: 10px;
+            transition: width 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* Transaction History */
+        .transaction-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: var(--bg-elevated);
+            border-radius: 12px;
+            margin-bottom: 10px;
+            transition: all 0.3s;
+        }
+
+        .transaction-item:hover {
+            background: var(--bg-card);
+            transform: translateX(5px);
+        }
+
+        .transaction-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .tx-sent { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
+        .tx-received { background: rgba(16, 185, 129, 0.2); color: var(--success); }
+        .tx-mined { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
+
+        .transaction-details {
+            flex: 1;
+            margin-left: 15px;
+        }
+
+        .transaction-type {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .transaction-date {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .transaction-amount {
+            font-weight: 700;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 90px;
+            right: 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            min-width: 300px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            animation: slideInRight 0.4s ease-out;
+            z-index: 1000;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .notification.success { border-left: 4px solid var(--success); }
+        .notification.error { border-left: 4px solid var(--danger); }
+        .notification.warning { border-left: 4px solid var(--warning); }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+            font-size: 14px;
+            border-top: 1px solid var(--border);
+            margin-top: 60px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-small {
+            padding: 10px 20px;
+            font-size: 14px;
+        }
+
+        .address-box {
+            background: var(--bg-elevated);
+            padding: 15px;
+            border-radius: 12px;
+            font-family: 'Courier New', monospace;
+            word-break: break-all;
+            margin: 15px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .copy-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: var(--secondary);
+            transform: scale(1.05);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-gradient"></div>
+
+    <!-- Auth Screen -->
+    <div id="authScreen" class="auth-screen">
+        <div class="auth-card">
+            <div class="logo" style="justify-content: center; margin-bottom: 30px;">
+                NoxWallet
+            </div>
+            <h1 class="auth-title" id="authTitle">Bienvenue</h1>
+            <p class="auth-subtitle">Votre passerelle sécurisée vers la finance décentralisée</p>
+            
+            <div id="loginForm">
+                <div class="input-group">
+                    <label class="input-label">Email / Nom d'utilisateur</label>
+                    <input type="text" id="loginUsername" class="input-field" placeholder="votre@email.com">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Mot de passe</label>
+                    <input type="password" id="loginPassword" class="input-field" placeholder="••••••••">
+                </div>
+                <button class="btn btn-primary" onclick="login()">Se connecter</button>
+                <button class="btn btn-secondary" onclick="showRegister()">Créer un compte</button>
+            </div>
+
+            <div id="registerForm" style="display: none;">
+                <div class="input-group">
+                    <label class="input-label">Nom d'utilisateur</label>
+                    <input type="text" id="regUsername" class="input-field" placeholder="CryptoMaster">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Email</label>
+                    <input type="email" id="regEmail" class="input-field" placeholder="votre@email.com">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Mot de passe</label>
+                    <input type="password" id="regPassword" class="input-field" placeholder="••••••••">
+                </div>
+                <button class="btn btn-primary" onclick="register()">Créer mon compte</button>
+                <button class="btn btn-secondary" onclick="showLogin()">J'ai déjà un compte</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="dashboardScreen" style="display: none;">
+        <div class="header">
+            <div class="logo">NoxWallet</div>
+            <div class="header-balance">
+                <div class="balance-display">
+                    <div class="balance-label">Solde Total</div>
+                    <div class="balance-amount" id="headerBalance">0.00 €</div>
+                </div>
+                <button class="theme-toggle" onclick="toggleTheme()">
+                    <span id="themeIcon">🌙</span>
+                    <span id="themeText">Sombre</span>
+                </button>
+                <button class="theme-toggle" onclick="logout()">
+                    <span>🚪</span>
+                    <span>Déconnexion</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="dashboard">
+                <div class="welcome-banner">
+                    <h1 class="welcome-title" id="welcomeUser">Bienvenue, Utilisateur</h1>
+                    <p class="welcome-text">Minez, échangez et gérez vos actifs numériques en toute sérénité</p>
+                </div>
+
+                <div class="nav-tabs">
+                    <button class="nav-tab active" onclick="showTab('overview')">📊 Vue d'ensemble</button>
+                    <button class="nav-tab" onclick="showTab('wallet')">💰 Portefeuille</button>
+                    <button class="nav-tab" onclick="showTab('mining')">⚒️ Mining</button>
+                    <button class="nav-tab" onclick="showTab('send')">📤 Envoyer</button>
+                    <button class="nav-tab" onclick="showTab('receive')">📥 Recevoir</button>
+                    <button class="nav-tab" onclick="showTab('history')">📜 Historique</button>
+                </div>
+
+                <!-- Overview Tab -->
+                <div id="overviewTab" class="tab-content active">
+                    <div class="cards-grid">
+                        <div class="card">
+                            <div class="card-title">
+                                <span class="card-icon">💰</span>
+                                Valeur Totale
+                            </div>
+                            <div class="stat-value" id="totalValue">0.00 €</div>
+                            <div class="crypto-value" id="totalValueUSD">0.00 USD</div>
+                        </div>
+                        <div class="card">
+                            <div class="card-title">
+                                <span class="card-icon">⚡</span>
+                                Revenus Mining
+                            </div>
+                            <div class="stat-value" id="miningRevenue">0.00 €</div>
+                            <div class="crypto-value">Aujourd'hui</div>
+                        </div>
+                        <div class="card">
+                            <div class="card-title">
+                                <span class="card-icon">📊</span>
+                                Hashrate Global
+                            </div>
+                            <div class="stat-value" id="globalHashrate">0 MH/s</div>
+                            <div class="crypto-value">En temps réel</div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title">
+                            <span class="card-icon">📈</span>
+                            Performance du Portefeuille
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="portfolioChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Wallet Tab -->
+                <div id="walletTab" class="tab-content">
+                    <div class="card">
+                        <div class="card-title">
+                            <span class="card-icon">💎</span>
+                            Mes Cryptomonnaies
+                        </div>
+                        <div class="crypto-list" id="cryptoList"></div>
+                    </div>
+                </div>
+
+                <!-- Mining Tab -->
+                <div id="miningTab" class="tab-content">
+                    <div class="card">
+                        <div class="card-title">
+                            <span class="card-icon">⚒️</span>
+                            Console de Mining
+                        </div>
+                        <div class="mining-stats">
+                            <div class="stat-box">
+                                <div class="stat-label">Hashrate</div>
+                                <div class="stat-value" id="miningHashrate">0</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-label">Niveau</div>
+                                <div class="stat-value" id="miningLevel">1</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-label">Blocs minés</div>
+                                <div class="stat-value" id="blocksMinedCount">0</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-label">Gain cumulé</div>
+                                <div class="stat-value" id="totalMined">0.00</div>
+                            </div>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="miningProgress" style="width: 0%"></div>
+                        </div>
+                        <div class="mining-console" id="miningConsole">
+                            <div class="console-line">> Système de mining prêt...</div>
+                            <div class="console-line">> Sélectionnez une crypto pour commencer</div>
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn btn-primary" onclick="startMining('BTC')">⚒️ Miner BTC</button>
+                            <button class="btn btn-primary" onclick="startMining('ETH')">⚒️ Miner ETH</button>
+                            <button class="btn btn-primary" style="background: var(--danger);" onclick="stopMining()">⏹️ Arrêter</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Send Tab -->
+                <div id="sendTab" class="tab-content">
+                    <div class="card">
+                        <div class="card-title">
+                            <span class="card-icon">📤</span>
+                            Envoyer des Cryptos
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">Crypto</label>
+                            <select id="sendCrypto" class="input-field">
+                                <option value="BTC">Bitcoin (BTC)</option>
+                                <option value="ETH">Ethereum (ETH)</option>
+                                <option value="USDT">Tether (USDT)</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">Adresse de destination</label>
+                            <input type="text" id="sendAddress" class="input-field" placeholder="1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">Montant</label>
+                            <input type="number" id="sendAmount" class="input-field" placeholder="0.00" step="0.00000001">
+                        </div>
+                        <button class="btn btn-primary" onclick="sendCrypto()">📤 Envoyer</button>
+                    </div>
+                </div>
+
+                <!-- Receive Tab -->
+                <div id="receiveTab" class="tab-content">
+                    <div class="card">
+                        <div class="card-title">
+                            <span class="card-icon">📥</span>
+                            Recevoir des Cryptos
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">Sélectionner la crypto</label>
+                            <select id="receiveCrypto" class="input-field" onchange="updateReceiveAddress()">
+                                <option value="BTC">Bitcoin (BTC)</option>
+                                <option value="ETH">Ethereum (ETH)</option>
+                                <option value="USDT">Tether (USDT)</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">Votre adresse de réception</label>
+                            <div class="address-box">
+                                <span id="receiveAddress">1FfmbHfnpaZjKFvyi1okTjJJusN455paPH</span>
+                                <button class="copy-btn" onclick="copyAddress()">📋 Copier</button>
+                            </div>
+                        </div>
+                        <p style="color: var(--text-secondary); font-size: 14px; margin-top: 15px;">
+                            💡 Partagez cette adresse pour recevoir des paiements en toute sécurité
+                        </p>
+                    </div>
+                </div>
+
+                <!-- History Tab -->
+                <div id="historyTab" class="tab-content">
+                    <div class="card">
+                        <div class="card-title">
+                            <span class="card-icon">📜</span>
+                            Historique des Transactions
+                        </div>
+                        <div id="transactionHistory"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer">
+                © 2025 NoxWallet — Secure. Transparent. Real-time. Powered by blockchain technology.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data structure
+        let userData = {
+            username: '',
+            email: '',
+            wallet: {
+                BTC: 0.5,
+                ETH: 2.3,
+                USDT: 1500
+            },
+            transactions: [],
+            miningLevel: 1,
+            totalMined: 0,
+            blocksMinedCount: 0
+        };
+
+        let miningInterval = null;
+        let miningProgress = 0;
+        let currentTheme = 'dark';
+
+        // Crypto prices (simulated)
+        const cryptoPrices = {
+            BTC: 45000,
+            ETH: 3200,
+            USDT: 0.92
+        };
+
+        // Authentication
+        function showRegister() {
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('registerForm').style.display = 'block';
+            document.getElementById('authTitle').textContent = 'Créer un compte';
+        }
+
+        function showLogin() {
+            document.getElementById('registerForm').style.display = 'none';
+            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('authTitle').textContent = 'Bienvenue';
+        }
+
+        function register() {
+            const username = document.getElementById('regUsername').value;
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+
+            if (!username || !email || !password) {
+                showNotification('Veuillez remplir tous les champs', 'error');
+                return;
+            }
+
+            userData.username = username;
+            userData.email = email;
+            
+            const users = JSON.parse(localStorage.getItem('noxwalletUsers') || '{}');
+            users[email] = {
+                username,
+                password,
+                wallet: userData.wallet,
+                transactions: [],
+                miningLevel: 1,
+                totalMined: 0,
+                blocksMinedCount: 0
+            };
+            localStorage.setItem('noxwalletUsers', JSON.stringify(users));
+
+            showNotification('Compte créé avec succès !', 'success');
+            setTimeout(() => {
+                enterDashboard();
+            }, 1000);
+        }
+
+        function login() {
+            const identifier = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+
+            if (!identifier || !password) {
+                showNotification('Veuillez remplir tous les champs', 'error');
+                return;
+            }
+
+            const users = JSON.parse(localStorage.getItem('noxwalletUsers') || '{}');
+            const user = users[identifier];
+
+            if (!user || user.password !== password) {
+                showNotification('Identifiants incorrects', 'error');
+                return;
+            }
+
+            userData = {
+                username: user.username,
+                email: identifier,
+                wallet: user.wallet,
+                transactions: user.transactions || [],
+                miningLevel: user.miningLevel || 1,
+                totalMined: user.totalMined || 0,
+                blocksMinedCount: user.blocksMinedCount || 0
+            };
+
+            showNotification('Connexion réussie !', 'success');
+            setTimeout(() => {
+                enterDashboard();
+            }, 1000);
+        }
+
+        function logout() {
+            saveUserData();
+            document.getElementById('dashboardScreen').style.display = 'none';
+            document.getElementById('authScreen').style.display = 'flex';
+            showNotification('Déconnecté avec succès', 'success');
+        }
+
+        function enterDashboard() {
+            document.getElementById('authScreen').style.display = 'none';
+            document.getElementById('dashboardScreen').style.display = 'block';
+            document.getElementById('welcomeUser').textContent = `Bienvenue, ${userData.username}`;
+            updateDashboard();
+            initChart();
+        }
+
+        function saveUserData() {
+            const users = JSON.parse(localStorage.getItem('noxwalletUsers') || '{}');
+            users[userData.email] = {
+                username: userData.username,
+                password: users[userData.email]?.password || '',
+                wallet: userData.wallet,
+                transactions: userData.transactions,
+                miningLevel: userData.miningLevel,
+                totalMined: userData.totalMined,
+                blocksMinedCount: userData.blocksMinedCount
+            };
+            localStorage.setItem('noxwalletUsers', JSON.stringify(users));
+        }
+
+        // Theme Toggle
+        function toggleTheme() {
+            currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', currentTheme);
+            document.getElementById('themeIcon').textContent = currentTheme === 'dark' ? '🌙' : '☀️';
+            document.getElementById('themeText').textContent = currentTheme === 'dark' ? 'Sombre' : 'Clair';
+            
+            if (window.portfolioChart) {
+                updateChartTheme();
+            }
+        }
+
+        // Tab Navigation
+        function showTab(tabName) {
+            const tabs = document.querySelectorAll('.tab-content');
+            const navTabs = document.querySelectorAll('.nav-tab');
+            
+            tabs.forEach(tab => tab.classList.remove('active'));
+            navTabs.forEach(tab => tab.classList.remove('active'));
+            
+            document.getElementById(tabName + 'Tab').classList.add('active');
+            event.target.classList.add('active');
+            
+            if (tabName === 'wallet') {
+                renderWallet();
+            } else if (tabName === 'history') {
+                renderHistory();
+            }
+        }
+
+        // Dashboard Update
+        function updateDashboard() {
+            const totalValue = calculateTotalValue();
+            const totalValueUSD = totalValue / 0.92;
+            
+            document.getElementById('headerBalance').textContent = totalValue.toFixed(2) + ' €';
+            document.getElementById('totalValue').textContent = totalValue.toFixed(2) + ' €';
+            document.getElementById('totalValueUSD').textContent = totalValueUSD.toFixed(2) + ' USD';
+            document.getElementById('miningRevenue').textContent = (userData.totalMined * cryptoPrices.BTC * 0.92).toFixed(2) + ' €';
+            document.getElementById('globalHashrate').textContent = (Math.random() * 1500 + 500).toFixed(2) + ' TH/s';
+            document.getElementById('miningLevel').textContent = userData.miningLevel;
+            document.getElementById('blocksMinedCount').textContent = userData.blocksMinedCount;
+            document.getElementById('totalMined').textContent = userData.totalMined.toFixed(8);
+            
+            renderWallet();
+            renderHistory();
+        }
+
+        function calculateTotalValue() {
+            let total = 0;
+            for (let crypto in userData.wallet) {
+                total += userData.wallet[crypto] * cryptoPrices[crypto];
+            }
+            return total * 0.92; // Convert to EUR
+        }
+
+        function renderWallet() {
+            const cryptoList = document.getElementById('cryptoList');
+            cryptoList.innerHTML = '';
+            
+            for (let crypto in userData.wallet) {
+                const amount = userData.wallet[crypto];
+                const value = amount * cryptoPrices[crypto] * 0.92;
+                
+                const item = document.createElement('div');
+                item.className = 'crypto-item';
+                item.innerHTML = `
+                    <div class="crypto-info">
+                        <div class="crypto-symbol ${crypto.toLowerCase()}">${crypto}</div>
+                        <div class="crypto-details">
+                            <div class="crypto-name">${getCryptoName(crypto)}</div>
+                            <div class="crypto-symbol-text">${crypto}</div>
+                        </div>
+                    </div>
+                    <div class="crypto-balance">
+                        <div class="crypto-amount">${amount.toFixed(8)}</div>
+                        <div class="crypto-value">≈ ${value.toFixed(2)} EUR</div>
+                    </div>
+                `;
+                cryptoList.appendChild(item);
+            }
+        }
+
+        function getCryptoName(symbol) {
+            const names = {
+                BTC: 'Bitcoin',
+                ETH: 'Ethereum',
+                USDT: 'Tether'
+            };
+            return names[symbol] || symbol;
+        }
+
+        // Mining
+        function startMining(crypto) {
+            if (miningInterval) {
+                showNotification('Mining déjà en cours', 'warning');
+                return;
+            }
+
+            const console = document.getElementById('miningConsole');
+            console.innerHTML = '';
+            addConsoleLine(`> Initialisation du mining ${crypto}...`);
+            addConsoleLine(`> Connexion au réseau blockchain...`);
+            addConsoleLine(`> Hashrate: ${userData.miningLevel * 1000} TH/s`);
+            addConsoleLine(`> Mining démarré !`);
+            
+            miningProgress = 0;
+            let hashrate = userData.miningLevel * 1000;
+            document.getElementById('miningHashrate').textContent = hashrate + ' MH/s';
+            
+            miningInterval = setInterval(() => {
+                miningProgress += Math.random() * 5 + 2;
+                document.getElementById('miningProgress').style.width = Math.min(miningProgress, 100) + '%';
+                
+                if (Math.random() < 0.3) {
+                    addConsoleLine(`> Nonce trouvé: 0x${Math.random().toString(16).substr(2, 8)}`);
+                }
+                
+                if (miningProgress >= 100) {
+                    const reward = (Math.random() * 0.05 + 0.03) * userData.miningLevel;
+                    userData.wallet[crypto] = (userData.wallet[crypto] || 0) + reward;
+                    userData.totalMined += reward;
+                    userData.blocksMinedCount++;
+                    
+                    if (userData.blocksMinedCount % 10 === 0) {
+                        userData.miningLevel++;
+                        showNotification(`Niveau ${userData.miningLevel} atteint !`, 'success');
+                    }
+                    
+                    addConsoleLine(`> ✅ BLOC MINÉ ! Récompense: ${reward.toFixed(8)} ${crypto}`);
+                    addConsoleLine(`> Hash du bloc: 0x${Math.random().toString(16).substr(2, 64)}`);
+                    
+                    const transaction = {
+                        type: 'mined',
+                        crypto: crypto,
+                        amount: reward,
+                        date: new Date().toISOString(),
+                        status: 'confirmé'
+                    };
+                    userData.transactions.unshift(transaction);
+                    
+                    updateDashboard();
+                    saveUserData();
+                    showNotification(`Bloc miné ! +${reward.toFixed(8)} ${crypto}`, 'success');
+                    
+                    miningProgress = 0;
+                }
+            }, 500);
+        }
+
+        function stopMining() {
+            if (miningInterval) {
+                clearInterval(miningInterval);
+                miningInterval = null;
+                addConsoleLine(`> Mining arrêté`);
+                document.getElementById('miningProgress').style.width = '0%';
+                showNotification('Mining arrêté', 'warning');
+            }
+        }
+
+        function addConsoleLine(text) {
+            const console = document.getElementById('miningConsole');
+            const line = document.createElement('div');
+            line.className = 'console-line';
+            line.textContent = text;
+            console.appendChild(line);
+            console.scrollTop = console.scrollHeight;
+        }
+
+        // Send Crypto
+        function sendCrypto() {
+            const crypto = document.getElementById('sendCrypto').value;
+            const address = document.getElementById('sendAddress').value;
+            const amount = parseFloat(document.getElementById('sendAmount').value);
+            
+            if (!address || !amount || amount <= 0) {
+                showNotification('Veuillez remplir tous les champs', 'error');
+                return;
+            }
+            
+            if (userData.wallet[crypto] < amount) {
+                showNotification('Solde insuffisant', 'error');
+                return;
+            }
+            
+            userData.wallet[crypto] -= amount;
+            
+            const transaction = {
+                type: 'sent',
+                crypto: crypto,
+                amount: amount,
+                address: address,
+                date: new Date().toISOString(),
+                status: 'confirmé'
+            };
+            userData.transactions.unshift(transaction);
+            
+            updateDashboard();
+            saveUserData();
+            
+            document.getElementById('sendAddress').value = '';
+            document.getElementById('sendAmount').value = '';
+            
+            showNotification(`Transaction réussie ! ${amount} ${crypto} envoyé`, 'success');
+        }
+
+        // Receive
+        function updateReceiveAddress() {
+            const crypto = document.getElementById('receiveCrypto').value;
+            const addresses = {
+                BTC: '1FfmbHfnpaZjKFvyi1okTjJJusN455paPH',
+                ETH: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb',
+                USDT: 'TYASr5UV6HEcXatwdFQfmLVUqQQQMUxHLS'
+            };
+            document.getElementById('receiveAddress').textContent = addresses[crypto];
+        }
+
+        function copyAddress() {
+            const address = document.getElementById('receiveAddress').textContent;
+            navigator.clipboard.writeText(address).then(() => {
+                showNotification('Adresse copiée !', 'success');
+            });
+        }
+
+        // History
+        function renderHistory() {
+            const historyContainer = document.getElementById('transactionHistory');
+            historyContainer.innerHTML = '';
+            
+            if (userData.transactions.length === 0) {
+                historyContainer.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 40px;">Aucune transaction pour le moment</p>';
+                return;
+            }
+            
+            userData.transactions.forEach(tx => {
+                const item = document.createElement('div');
+                item.className = 'transaction-item';
+                
+                const iconClass = tx.type === 'sent' ? 'tx-sent' : tx.type === 'received' ? 'tx-received' : 'tx-mined';
+                const icon = tx.type === 'sent' ? '📤' : tx.type === 'received' ? '📥' : '⚒️';
+                const typeText = tx.type === 'sent' ? 'Envoyé' : tx.type === 'received' ? 'Reçu' : 'Miné';
+                const sign = tx.type === 'sent' ? '-' : '+';
+                
+                item.innerHTML = `
+                    <div class="transaction-icon ${iconClass}">${icon}</div>
+                    <div class="transaction-details">
+                        <div class="transaction-type">${typeText} ${tx.crypto}</div>
+                        <div class="transaction-date">${new Date(tx.date).toLocaleString('fr-FR')}</div>
+                    </div>
+                    <div class="transaction-amount" style="color: ${tx.type === 'sent' ? 'var(--danger)' : 'var(--success)'}">
+                        ${sign}${tx.amount.toFixed(8)} ${tx.crypto}
+                    </div>
+                `;
+                historyContainer.appendChild(item);
+            });
+        }
+
+        // Notification
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.innerHTML = `
+                <div style="font-weight: 600; margin-bottom: 5px;">${type === 'success' ? '✅ Succès' : type === 'error' ? '❌ Erreur' : '⚠️ Attention'}</div>
+                <div>${message}</div>
+            `;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideInRight 0.4s ease-out reverse';
+                setTimeout(() => notification.remove(), 400);
+            }, 3000);
+        }
+
+        // Chart
+        let portfolioChart;
+
+        function initChart() {
+            const ctx = document.getElementById('portfolioChart').getContext('2d');
+            const isDark = currentTheme === 'dark';
+            
+            portfolioChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin'],
+                    datasets: [{
+                        label: 'Valeur du portefeuille (€)',
+                        data: [18000, 21000, 19500, 25000, 28000, calculateTotalValue()],
+                        borderColor: '#6366f1',
+                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: isDark ? '#ffffff' : '#1a1a2e'
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            grid: {
+                                color: isDark ? '#2d2d48' : '#dee2e6'
+                            },
+                            ticks: {
+                                color: isDark ? '#a0a0c0' : '#6c757d'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: isDark ? '#2d2d48' : '#dee2e6'
+                            },
+                            ticks: {
+                                color: isDark ? '#a0a0c0' : '#6c757d'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateChartTheme() {
+            const isDark = currentTheme === 'dark';
+            portfolioChart.options.plugins.legend.labels.color = isDark ? '#ffffff' : '#1a1a2e';
+            portfolioChart.options.scales.y.grid.color = isDark ? '#2d2d48' : '#dee2e6';
+            portfolioChart.options.scales.y.ticks.color = isDark ? '#a0a0c0' : '#6c757d';
+            portfolioChart.options.scales.x.grid.color = isDark ? '#2d2d48' : '#dee2e6';
+            portfolioChart.options.scales.x.ticks.color = isDark ? '#a0a0c0' : '#6c757d';
+            portfolioChart.update();
+        }
+
+        // Initialize
+        window.addEventListener('beforeunload', () => {
+            if (userData.email) {
+                saveUserData();
+            }
+        });
+    </script>
+</body>
+</html>
